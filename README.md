@@ -37,6 +37,9 @@ in PostgreSQL.
 Image metadata is available at `GET /api/images`, newest first. Each image includes a
 binary route at `GET /api/images/:id/content`.
 
+Selected images can be streamed as a zip archive with `POST /api/downloads/zip` and a JSON
+body containing `imageIds`.
+
 ## Environment
 
 Copy `.env.example` for local development and provide real values through the environment.

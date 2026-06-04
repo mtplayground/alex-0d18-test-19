@@ -1,11 +1,13 @@
-import { Readable } from "node:stream";
-import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import type { PrismaClient } from "@prisma/client";
 import type { ListImagesResponse } from "@myclawteam/shared";
 import { Router, type Response } from "express";
 import { HttpError } from "../lib/httpError.js";
 import { toImageMetadata } from "../lib/imageMetadata.js";
-import type { ObjectStorageClient, RetrievedStoredObject } from "../storage/objectStorage.js";
+import {
+  objectBodyToReadable,
+  type ObjectStorageClient,
+  type RetrievedStoredObject
+} from "../storage/objectStorage.js";
 
 interface ImagesRouterDependencies {
   prisma: PrismaClient;
@@ -62,24 +64,11 @@ export function createImagesRouter(dependencies: ImagesRouterDependencies): Rout
 }
 
 function streamObjectBody(object: RetrievedStoredObject, response: Response) {
-  if (object.body instanceof Readable) {
-    object.body.on("error", (error) => {
-      response.destroy(error);
-    });
-    object.body.pipe(response);
-    return;
-  }
-
-  if ("transformToWebStream" in object.body) {
-    const stream = Readable.fromWeb(object.body.transformToWebStream() as NodeReadableStream);
-    stream.on("error", (error) => {
-      response.destroy(error);
-    });
-    stream.pipe(response);
-    return;
-  }
-
-  throw new HttpError(500, "Object body is not streamable");
+  const stream = objectBodyToReadable(object.body);
+  stream.on("error", (error) => {
+    response.destroy(error);
+  });
+  stream.pipe(response);
 }
 
 function escapeFilename(filename: string): string {
