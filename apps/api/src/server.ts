@@ -3,26 +3,10 @@ import express, { type ErrorRequestHandler, type Request, type Response } from "
 import helmet from "helmet";
 import morgan from "morgan";
 import { APP_NAME, type AppInfo } from "@myclawteam/shared";
-
-const DEFAULT_HOST = "0.0.0.0";
-const DEFAULT_PORT = 8080;
-
-function readPort(value: string | undefined): number {
-  if (!value) {
-    return DEFAULT_PORT;
-  }
-
-  const parsed = Number(value);
-  if (!Number.isInteger(parsed) || parsed <= 0 || parsed > 65535) {
-    throw new Error(`Invalid PORT value: ${value}`);
-  }
-
-  return parsed;
-}
+import { loadConfig } from "./config/env.js";
 
 const app = express();
-const host = process.env.HOST || DEFAULT_HOST;
-const port = readPort(process.env.PORT);
+const config = loadConfig();
 
 app.use(helmet());
 app.use(cors());
@@ -37,7 +21,7 @@ app.get("/api/info", (_request: Request, response: Response<AppInfo>) => {
   response.status(200).json({
     name: APP_NAME,
     version: "0.1.0",
-    environment: process.env.NODE_ENV || "development"
+    environment: config.nodeEnv
   });
 });
 
@@ -50,6 +34,6 @@ const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => 
 
 app.use(errorHandler);
 
-app.listen(port, host, () => {
-  console.log(`${APP_NAME} API listening on http://${host}:${port}`);
+app.listen(config.port, config.host, () => {
+  console.log(`${APP_NAME} API listening on http://${config.host}:${config.port}`);
 });
