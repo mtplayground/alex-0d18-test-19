@@ -1,0 +1,49 @@
+# myClawTeam Architecture Plan
+
+## Module Structure
+
+- `apps/web`: React + Tailwind frontend built with Vite and TypeScript.
+  - `src/pages/GalleryBoard.tsx`: main board view for upload, listing, selection, and zip download.
+  - `src/components/UploadDropzone.tsx`: drag/drop and file-picker upload component with per-file status.
+  - `src/components/ImageGrid.tsx`: responsive newest-first thumbnail grid.
+  - `src/lib/api.ts`: typed API client for upload, image listing, and zip download.
+- `apps/api`: Node/Express backend written in TypeScript.
+  - `src/server.ts`: app bootstrap, middleware, routes, and error boundary.
+  - `src/config/env.ts`: validated environment variables.
+  - `src/db/client.ts`: ORM client setup.
+  - `src/db/schema` or `prisma/schema.prisma`: `images` metadata model and migration source.
+  - `src/storage/objectStorage.ts`: S3-compatible client helpers for put/get/stream.
+  - `src/routes/uploads.ts`: multipart upload endpoint.
+  - `src/routes/images.ts`: metadata listing and binary image fetch routes.
+  - `src/routes/downloads.ts`: zip bundling endpoint.
+  - `src/lib/validation.ts`: shared server-side file type, size, and request validation.
+- `packages/shared`: shared TypeScript types and constants.
+  - `src/image.ts`: image metadata DTOs, upload responses, and download request types.
+  - `src/limits.ts`: accepted content types and size limits used by frontend and backend.
+- Root tooling: npm/pnpm workspaces, shared TypeScript config, lint/format config, and scripts for dev/build/test.
+
+## Issue Dependencies
+
+- Issue #1 establishes the monorepo, frontend, backend, and shared tooling.
+- Issue #2 adds validated environment configuration and `.env.example`; it is required before DB and storage setup.
+- Issue #3 adds PostgreSQL ORM wiring, the `images` table, and migrations.
+- Issue #4 adds the S3-compatible Object Storage client.
+- Issue #5 depends on #3 and #4: upload files, validate them, store objects, and persist metadata.
+- Issue #6 depends on API/env conventions from #2 and targets the upload UI.
+- Issue #7 depends on #3: list image metadata and expose image binary routes.
+- Issue #8 depends on #7: render the gallery board from the listing endpoint.
+- Issue #9 depends on #3 and #4: stream selected stored objects into a zip response.
+- Issue #10 depends on #8 and #9: add gallery selection and trigger zip download.
+- Issue #11 depends on the full upload/list/select/download workflow and should exercise real app behavior.
+- Issue #12 hardens validation and error handling across upload, object retrieval, empty selections, and missing objects.
+- Issue #13 finalizes production build, deployment docs, and self-hosted run steps.
+
+## Key Decisions
+
+- Keep API contracts in `packages/shared` so the React app and Express API evolve together without duplicated DTOs.
+- Use a single `images` metadata table with immutable object keys; binary data stays in Object Storage.
+- Return image metadata newest-first and expose image binaries through backend routes so authorization, missing-object handling, and future cache policy stay centralized.
+- Stream uploads and downloads where practical to avoid loading large image sets or zip bundles entirely into memory.
+- Validate environment variables at process start and use `.env.example` as the canonical deployment checklist.
+- Centralize file limits and accepted content types so frontend hints match backend enforcement.
+- Prefer integration/E2E coverage for the critical path: upload multiple images, display them, select a subset, and download a valid zip.
