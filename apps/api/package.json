@@ -13,6 +13,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1061.0",
     "@myclawteam/shared": "0.1.0",
     "@prisma/client": "^6.9.0",
     "cors": "^2.8.5",
