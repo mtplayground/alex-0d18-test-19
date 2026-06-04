@@ -4,6 +4,7 @@ import { Router, type Response } from "express";
 import { HttpError } from "../lib/httpError.js";
 import { toImageMetadata } from "../lib/imageMetadata.js";
 import {
+  ObjectStorageNotFoundError,
   objectBodyToReadable,
   type ObjectStorageClient,
   type RetrievedStoredObject
@@ -43,7 +44,7 @@ export function createImagesRouter(dependencies: ImagesRouterDependencies): Rout
         throw new HttpError(404, "Image not found");
       }
 
-      const object = await dependencies.storage.getObject(image.storageKey);
+      const object = await getStoredImageObject(dependencies.storage, image.storageKey);
 
       response.status(200);
       response.setHeader("Content-Type", image.contentType);
@@ -61,6 +62,21 @@ export function createImagesRouter(dependencies: ImagesRouterDependencies): Rout
   });
 
   return router;
+}
+
+async function getStoredImageObject(
+  storage: ObjectStorageClient,
+  storageKey: string
+): Promise<RetrievedStoredObject> {
+  try {
+    return await storage.getObject(storageKey);
+  } catch (error) {
+    if (error instanceof ObjectStorageNotFoundError) {
+      throw new HttpError(404, "Image file is missing from storage");
+    }
+
+    throw error;
+  }
 }
 
 function streamObjectBody(object: RetrievedStoredObject, response: Response) {

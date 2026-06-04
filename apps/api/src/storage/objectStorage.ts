@@ -35,6 +35,13 @@ export class ObjectStorageError extends Error {
   }
 }
 
+export class ObjectStorageNotFoundError extends ObjectStorageError {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "ObjectStorageNotFoundError";
+  }
+}
+
 export class ObjectStorageClient {
   private readonly s3: S3Client;
   private readonly bucket: string;
@@ -95,6 +102,10 @@ export class ObjectStorageClient {
         })
       );
     } catch (error) {
+      if (isObjectNotFoundError(error)) {
+        throw new ObjectStorageNotFoundError(`Object not found: ${key}`, { cause: error });
+      }
+
       throw new ObjectStorageError(`Failed to get object: ${key}`, { cause: error });
     }
 
@@ -157,4 +168,18 @@ export function objectBodyToReadable(body: RetrievedStoredObject["body"]): Reada
   }
 
   throw new ObjectStorageError("Object body is not streamable");
+}
+
+function isObjectNotFoundError(error: unknown): boolean {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const errorName = "name" in error && typeof error.name === "string" ? error.name : undefined;
+  const metadata =
+    "$metadata" in error && error.$metadata && typeof error.$metadata === "object"
+      ? (error.$metadata as { httpStatusCode?: number })
+      : undefined;
+
+  return errorName === "NoSuchKey" || errorName === "NotFound" || metadata?.httpStatusCode === 404;
 }

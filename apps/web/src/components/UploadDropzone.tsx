@@ -1,8 +1,10 @@
 import { useCallback, useRef, useState, type DragEvent } from "react";
 import {
   ACCEPTED_IMAGE_CONTENT_TYPES,
+  ACCEPTED_IMAGE_TYPE_LABEL,
   MAX_IMAGE_SIZE_BYTES,
   MAX_UPLOAD_FILES,
+  formatBytes,
   type ImageMetadata
 } from "@myclawteam/shared";
 import { AlertCircle, CheckCircle2, ImagePlus, Loader2, UploadCloud, XCircle } from "lucide-react";
@@ -148,7 +150,7 @@ export function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
         <div className="mt-5 space-y-2">
           <p className="text-xl font-semibold text-ink">Drop images</p>
           <p className="text-sm text-slate-600">
-            JPG, PNG, GIF, or WebP up to {formatBytes(MAX_IMAGE_SIZE_BYTES)}
+            {ACCEPTED_IMAGE_TYPE_LABEL} up to {formatBytes(MAX_IMAGE_SIZE_BYTES)}
           </p>
         </div>
         <button
@@ -279,7 +281,7 @@ function createLimitItem(file: File): UploadItem {
 
 function validateFile(file: File): string | undefined {
   if (!acceptedContentTypes.has(file.type)) {
-    return "Unsupported image type";
+    return `Unsupported image type. Use ${ACCEPTED_IMAGE_TYPE_LABEL}.`;
   }
 
   if (file.size > MAX_IMAGE_SIZE_BYTES) {
@@ -287,18 +289,6 @@ function validateFile(file: File): string | undefined {
   }
 
   return undefined;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function createId(): string {

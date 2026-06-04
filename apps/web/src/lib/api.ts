@@ -88,6 +88,10 @@ export function uploadImageFile(
 }
 
 export async function downloadImagesZip(imageIds: string[]): Promise<void> {
+  if (imageIds.length === 0) {
+    throw new Error("Select at least one image to download.");
+  }
+
   const requestBody: DownloadImagesZipRequest = { imageIds };
   const response = await fetch("/api/downloads/zip", {
     method: "POST",

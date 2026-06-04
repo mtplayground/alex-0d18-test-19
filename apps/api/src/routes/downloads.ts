@@ -5,6 +5,7 @@ import type { DownloadImagesZipRequest } from "@myclawteam/shared";
 import { Router } from "express";
 import { HttpError } from "../lib/httpError.js";
 import {
+  ObjectStorageNotFoundError,
   objectBodyToReadable,
   type ObjectStorageClient,
   type RetrievedStoredObject
@@ -84,7 +85,7 @@ function readImageIds(body: unknown): string[] {
   const imageIds = [...new Set(body.imageIds.map((imageId) => imageId.trim()))].filter(Boolean);
 
   if (imageIds.length === 0) {
-    throw new HttpError(400, "At least one image ID is required");
+    throw new HttpError(400, "Select at least one image to download.");
   }
 
   if (imageIds.length > MAX_ZIP_IMAGES) {
@@ -128,10 +129,18 @@ async function loadObjects(storage: ObjectStorageClient, images: Image[]): Promi
   const entries: ZipEntry[] = [];
 
   for (const image of images) {
-    entries.push({
-      image,
-      object: await storage.getObject(image.storageKey)
-    });
+    try {
+      entries.push({
+        image,
+        object: await storage.getObject(image.storageKey)
+      });
+    } catch (error) {
+      if (error instanceof ObjectStorageNotFoundError) {
+        throw new HttpError(404, "One or more image files are missing from storage");
+      }
+
+      throw error;
+    }
   }
 
   return entries;

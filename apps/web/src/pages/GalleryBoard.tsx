@@ -64,6 +64,11 @@ export function GalleryBoard() {
   };
 
   const handleDownloadZip = async () => {
+    if (selectedIds.size === 0) {
+      setError("Select at least one image to download.");
+      return;
+    }
+
     setDownloading(true);
     setError(undefined);
 
