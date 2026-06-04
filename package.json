@@ -1,0 +1,27 @@
+{
+  "name": "myclawteam",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @myclawteam/shared && npm run build --workspace @myclawteam/api && npm run build --workspace @myclawteam/web",
+    "dev": "npm run dev --workspace @myclawteam/api",
+    "dev:api": "npm run dev --workspace @myclawteam/api",
+    "dev:web": "npm run dev --workspace @myclawteam/web",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspace @myclawteam/shared && npm run typecheck --workspace @myclawteam/api && npm run typecheck --workspace @myclawteam/web"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.0"
+  }
+}
