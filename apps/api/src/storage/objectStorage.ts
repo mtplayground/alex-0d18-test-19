@@ -1,10 +1,10 @@
 import {
   GetObjectCommand,
-  PutObjectCommand,
   S3Client,
   type GetObjectCommandOutput,
   type PutObjectCommandInput
 } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
 import type { AppConfig } from "../config/env.js";
 
 export interface PutStoredObjectInput {
@@ -66,7 +66,10 @@ export class ObjectStorageClient {
     }
 
     try {
-      await this.s3.send(new PutObjectCommand(commandInput));
+      await new Upload({
+        client: this.s3,
+        params: commandInput
+      }).done();
     } catch (error) {
       throw new ObjectStorageError(`Failed to put object: ${input.key}`, { cause: error });
     }

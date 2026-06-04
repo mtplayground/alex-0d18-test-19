@@ -6,10 +6,14 @@ import morgan from "morgan";
 import { APP_NAME, type AppInfo } from "@myclawteam/shared";
 import { loadConfig } from "./config/env.js";
 import { createPrismaClient } from "./db/client.js";
+import { isHttpError } from "./lib/httpError.js";
+import { createUploadsRouter } from "./routes/uploads.js";
+import { createObjectStorageClient } from "./storage/objectStorage.js";
 
 const app = express();
 const config = loadConfig();
 const prisma = createPrismaClient(config);
+const storage = createObjectStorageClient(config);
 
 app.use(helmet());
 app.use(cors());
@@ -28,11 +32,17 @@ app.get("/api/info", (_request: Request, response: Response<AppInfo>) => {
   });
 });
 
+app.use("/api", createUploadsRouter({ prisma, storage }));
+
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   void _next;
 
-  const message = error instanceof Error ? error.message : "Unexpected server error";
-  response.status(500).json({ error: message });
+  if (isHttpError(error)) {
+    response.status(error.statusCode).json({ error: error.message });
+    return;
+  }
+
+  response.status(500).json({ error: "Unexpected server error" });
 };
 
 app.use(errorHandler);

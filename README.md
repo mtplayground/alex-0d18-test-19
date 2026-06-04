@@ -30,6 +30,10 @@ Object Storage is configured through the vendor-neutral `OBJECT_STORAGE_*` varia
 `.env.example`. Storage helpers accept relative object keys and prepend the configured
 prefix before every S3 operation.
 
+The upload API accepts one or more image files at `POST /api/uploads` as
+`multipart/form-data`, stores each object under the configured prefix, and records metadata
+in PostgreSQL.
+
 ## Environment
 
 Copy `.env.example` for local development and provide real values through the environment.
