@@ -5,6 +5,8 @@ import {
   type PutObjectCommandInput
 } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
+import { Readable } from "node:stream";
+import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import type { AppConfig } from "../config/env.js";
 
 export interface PutStoredObjectInput {
@@ -143,4 +145,16 @@ export class ObjectStorageClient {
 
 export function createObjectStorageClient(config: AppConfig): ObjectStorageClient {
   return new ObjectStorageClient(config.objectStorage);
+}
+
+export function objectBodyToReadable(body: RetrievedStoredObject["body"]): Readable {
+  if (body instanceof Readable) {
+    return body;
+  }
+
+  if ("transformToWebStream" in body) {
+    return Readable.fromWeb(body.transformToWebStream() as NodeReadableStream);
+  }
+
+  throw new ObjectStorageError("Object body is not streamable");
 }

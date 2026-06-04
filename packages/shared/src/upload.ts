@@ -27,3 +27,7 @@ export interface ListImagesResponse {
 export interface UploadImagesResponse {
   images: ImageMetadata[];
 }
+
+export interface DownloadImagesZipRequest {
+  imageIds: string[];
+}

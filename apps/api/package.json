@@ -17,6 +17,7 @@
     "@aws-sdk/lib-storage": "^3.1061.0",
     "@myclawteam/shared": "0.1.0",
     "@prisma/client": "^6.9.0",
+    "archiver": "^8.0.0",
     "busboy": "^1.6.0",
     "cors": "^2.8.5",
     "express": "^4.21.2",
