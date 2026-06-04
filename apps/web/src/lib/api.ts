@@ -1,4 +1,9 @@
-import type { ImageMetadata, ListImagesResponse, UploadImagesResponse } from "@myclawteam/shared";
+import type {
+  DownloadImagesZipRequest,
+  ImageMetadata,
+  ListImagesResponse,
+  UploadImagesResponse
+} from "@myclawteam/shared";
 
 export async function listImages(): Promise<ImageMetadata[]> {
   const response = await fetch("/api/images", {
@@ -80,4 +85,49 @@ export function uploadImageFile(
     request.open("POST", "/api/uploads");
     request.send(formData);
   });
+}
+
+export async function downloadImagesZip(imageIds: string[]): Promise<void> {
+  const requestBody: DownloadImagesZipRequest = { imageIds };
+  const response = await fetch("/api/downloads/zip", {
+    method: "POST",
+    headers: {
+      Accept: "application/zip",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    throw new Error(await readDownloadError(response));
+  }
+
+  const zipBlob = await response.blob();
+  triggerDownload(zipBlob, readFilename(response.headers) || "myclawteam-images.zip");
+}
+
+async function readDownloadError(response: Response): Promise<string> {
+  try {
+    const payload = (await response.json()) as { error?: string };
+    return payload.error || "Download failed";
+  } catch {
+    return "Download failed";
+  }
+}
+
+function readFilename(headers: Headers): string | undefined {
+  const contentDisposition = headers.get("Content-Disposition");
+  const match = contentDisposition?.match(/filename="?([^"]+)"?/i);
+  return match?.[1];
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
