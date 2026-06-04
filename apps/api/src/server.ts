@@ -1,4 +1,7 @@
+import { existsSync } from "node:fs";
 import type { Server } from "node:http";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import cors from "cors";
 import express, { type ErrorRequestHandler, type Request, type Response } from "express";
 import helmet from "helmet";
@@ -16,6 +19,8 @@ const app = express();
 const config = loadConfig();
 const prisma = createPrismaClient(config);
 const storage = createObjectStorageClient(config);
+const webDistPath = resolve(dirname(fileURLToPath(import.meta.url)), "../../web/dist");
+const webIndexPath = resolve(webDistPath, "index.html");
 
 app.use(helmet());
 app.use(cors());
@@ -37,6 +42,18 @@ app.get("/api/info", (_request: Request, response: Response<AppInfo>) => {
 app.use("/api", createUploadsRouter({ prisma, storage }));
 app.use("/api", createImagesRouter({ prisma, storage }));
 app.use("/api", createDownloadsRouter({ prisma, storage }));
+
+if (existsSync(webIndexPath)) {
+  app.use(express.static(webDistPath));
+  app.get("*", (request, response, next) => {
+    if (!request.accepts("html")) {
+      next();
+      return;
+    }
+
+    response.sendFile(webIndexPath);
+  });
+}
 
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   void _next;
