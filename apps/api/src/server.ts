@@ -1,12 +1,15 @@
+import type { Server } from "node:http";
 import cors from "cors";
 import express, { type ErrorRequestHandler, type Request, type Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { APP_NAME, type AppInfo } from "@myclawteam/shared";
 import { loadConfig } from "./config/env.js";
+import { createPrismaClient } from "./db/client.js";
 
 const app = express();
 const config = loadConfig();
+const prisma = createPrismaClient(config);
 
 app.use(helmet());
 app.use(cors());
@@ -34,6 +37,41 @@ const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => 
 
 app.use(errorHandler);
 
-app.listen(config.port, config.host, () => {
-  console.log(`${APP_NAME} API listening on http://${config.host}:${config.port}`);
-});
+function stopServer(server: Server) {
+  server.close((closeError) => {
+    prisma
+      .$disconnect()
+      .then(() => {
+        if (closeError) {
+          console.error(closeError);
+          process.exit(1);
+        }
+
+        process.exit(0);
+      })
+      .catch((disconnectError: unknown) => {
+        console.error(disconnectError);
+        process.exit(1);
+      });
+  });
+}
+
+try {
+  await prisma.$connect();
+
+  const server = app.listen(config.port, config.host, () => {
+    console.log(`${APP_NAME} API listening on http://${config.host}:${config.port}`);
+  });
+
+  process.on("SIGINT", () => {
+    stopServer(server);
+  });
+
+  process.on("SIGTERM", () => {
+    stopServer(server);
+  });
+} catch (error) {
+  console.error(error);
+  await prisma.$disconnect();
+  process.exit(1);
+}

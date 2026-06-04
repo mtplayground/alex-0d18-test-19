@@ -14,12 +14,17 @@ Monorepo for the myClawTeam image gallery workflow.
 npm install
 npm run build
 npm run lint
+npm run db:generate
+npm run db:migrate
 npm run dev:api
 npm run dev:web
 ```
 
 The API defaults to `0.0.0.0:8080`. The frontend dev server runs with Vite and proxies
 API requests to the backend.
+
+Database migrations live in `apps/api/prisma/migrations` and are applied with Prisma
+against the PostgreSQL database configured by `DATABASE_URL`.
 
 ## Environment
 

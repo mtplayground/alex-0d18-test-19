@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Image {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  filename    String
+  storageKey  String   @unique @map("storage_key")
+  contentType String   @map("content_type")
+  size        BigInt
+  uploadedAt  DateTime @default(now()) @map("uploaded_at") @db.Timestamptz(6)
+
+  @@index([uploadedAt], map: "images_uploaded_at_idx")
+  @@map("images")
+}
