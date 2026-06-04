@@ -26,6 +26,10 @@ API requests to the backend.
 Database migrations live in `apps/api/prisma/migrations` and are applied with Prisma
 against the PostgreSQL database configured by `DATABASE_URL`.
 
+Object Storage is configured through the vendor-neutral `OBJECT_STORAGE_*` variables in
+`.env.example`. Storage helpers accept relative object keys and prepend the configured
+prefix before every S3 operation.
+
 ## Environment
 
 Copy `.env.example` for local development and provide real values through the environment.
