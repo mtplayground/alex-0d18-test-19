@@ -20,3 +20,9 @@ npm run dev:web
 
 The API defaults to `0.0.0.0:8080`. The frontend dev server runs with Vite and proxies
 API requests to the backend.
+
+## Environment
+
+Copy `.env.example` for local development and provide real values through the environment.
+The API validates required configuration at startup and fails fast when PostgreSQL or Object
+Storage settings are missing.
