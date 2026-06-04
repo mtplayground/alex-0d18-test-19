@@ -5,6 +5,7 @@ import type { PrismaClient } from "@prisma/client";
 import {
   MAX_IMAGE_SIZE_BYTES,
   MAX_UPLOAD_FILES,
+  formatBytes,
   type AcceptedImageContentType,
   type ImageMetadata,
   type UploadImagesResponse
@@ -141,7 +142,7 @@ async function uploadFile(
   file.on("limit", () => {
     sizeLimitExceeded = true;
     passThrough.destroy(
-      new HttpError(413, `Image exceeds the ${MAX_IMAGE_SIZE_BYTES} byte upload limit`)
+      new HttpError(413, `Image exceeds the ${formatBytes(MAX_IMAGE_SIZE_BYTES)} upload limit`)
     );
   });
 
@@ -155,14 +156,17 @@ async function uploadFile(
     });
   } catch (error) {
     if (sizeLimitExceeded) {
-      throw new HttpError(413, `Image exceeds the ${MAX_IMAGE_SIZE_BYTES} byte upload limit`);
+      throw new HttpError(
+        413,
+        `Image exceeds the ${formatBytes(MAX_IMAGE_SIZE_BYTES)} upload limit`
+      );
     }
 
     throw error;
   }
 
   if (sizeLimitExceeded) {
-    throw new HttpError(413, `Image exceeds the ${MAX_IMAGE_SIZE_BYTES} byte upload limit`);
+    throw new HttpError(413, `Image exceeds the ${formatBytes(MAX_IMAGE_SIZE_BYTES)} upload limit`);
   }
 
   const image = await dependencies.prisma.image.create({

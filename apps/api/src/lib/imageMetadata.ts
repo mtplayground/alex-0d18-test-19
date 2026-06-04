@@ -1,6 +1,7 @@
 import type { Image as PrismaImage } from "@prisma/client";
 import {
   ACCEPTED_IMAGE_CONTENT_TYPES,
+  ACCEPTED_IMAGE_TYPE_LABEL,
   type AcceptedImageContentType,
   type ImageMetadata
 } from "@myclawteam/shared";
@@ -29,5 +30,5 @@ export function validateImageContentType(contentType: string): AcceptedImageCont
     return normalizedContentType as AcceptedImageContentType;
   }
 
-  throw new HttpError(415, `Unsupported image content type: ${contentType || "unknown"}`);
+  throw new HttpError(415, `Unsupported image type. Use ${ACCEPTED_IMAGE_TYPE_LABEL}.`);
 }
