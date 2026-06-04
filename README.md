@@ -1,1 +1,22 @@
-# alex-0d18-test-19
+# myClawTeam
+
+Monorepo for the myClawTeam image gallery workflow.
+
+## Workspaces
+
+- `apps/web`: React, Vite, Tailwind, and TypeScript frontend.
+- `apps/api`: Node.js, Express, and TypeScript backend.
+- `packages/shared`: Shared TypeScript contracts and constants.
+
+## Commands
+
+```bash
+npm install
+npm run build
+npm run lint
+npm run dev:api
+npm run dev:web
+```
+
+The API defaults to `0.0.0.0:8080`. The frontend dev server runs with Vite and proxies
+API requests to the backend.
