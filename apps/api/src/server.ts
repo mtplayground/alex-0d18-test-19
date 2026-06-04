@@ -7,6 +7,7 @@ import { APP_NAME, type AppInfo } from "@myclawteam/shared";
 import { loadConfig } from "./config/env.js";
 import { createPrismaClient } from "./db/client.js";
 import { isHttpError } from "./lib/httpError.js";
+import { createImagesRouter } from "./routes/images.js";
 import { createUploadsRouter } from "./routes/uploads.js";
 import { createObjectStorageClient } from "./storage/objectStorage.js";
 
@@ -33,6 +34,7 @@ app.get("/api/info", (_request: Request, response: Response<AppInfo>) => {
 });
 
 app.use("/api", createUploadsRouter({ prisma, storage }));
+app.use("/api", createImagesRouter({ prisma, storage }));
 
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
   void _next;
