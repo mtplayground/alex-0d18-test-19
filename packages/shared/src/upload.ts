@@ -14,9 +14,14 @@ export interface ImageMetadata {
   id: string;
   filename: string;
   storageKey: string;
+  url: string;
   contentType: AcceptedImageContentType;
   size: number;
   uploadedAt: string;
+}
+
+export interface ListImagesResponse {
+  images: ImageMetadata[];
 }
 
 export interface UploadImagesResponse {

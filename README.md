@@ -34,6 +34,9 @@ The upload API accepts one or more image files at `POST /api/uploads` as
 `multipart/form-data`, stores each object under the configured prefix, and records metadata
 in PostgreSQL.
 
+Image metadata is available at `GET /api/images`, newest first. Each image includes a
+binary route at `GET /api/images/:id/content`.
+
 ## Environment
 
 Copy `.env.example` for local development and provide real values through the environment.

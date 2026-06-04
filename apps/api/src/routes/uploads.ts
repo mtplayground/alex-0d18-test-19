@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { basename, extname } from "node:path";
 import { PassThrough } from "node:stream";
-import type { PrismaClient, Image as PrismaImage } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import {
-  ACCEPTED_IMAGE_CONTENT_TYPES,
   MAX_IMAGE_SIZE_BYTES,
   MAX_UPLOAD_FILES,
   type AcceptedImageContentType,
@@ -13,6 +12,7 @@ import {
 import Busboy from "busboy";
 import { Router, type Request, type Response } from "express";
 import { HttpError } from "../lib/httpError.js";
+import { toImageMetadata, validateImageContentType } from "../lib/imageMetadata.js";
 import type { ObjectStorageClient } from "../storage/objectStorage.js";
 
 interface UploadRouterDependencies {
@@ -89,7 +89,7 @@ async function handleMultipartUpload(
 
       let contentType: AcceptedImageContentType;
       try {
-        contentType = validateContentType(info.mimeType);
+        contentType = validateImageContentType(info.mimeType);
       } catch (error) {
         file.resume();
         rejectOnce(error);
@@ -177,16 +177,6 @@ async function uploadFile(
   return toImageMetadata(image);
 }
 
-function validateContentType(contentType: string): AcceptedImageContentType {
-  const normalizedContentType = contentType.toLowerCase();
-
-  if (ACCEPTED_IMAGE_CONTENT_TYPES.includes(normalizedContentType as AcceptedImageContentType)) {
-    return normalizedContentType as AcceptedImageContentType;
-  }
-
-  throw new HttpError(415, `Unsupported image content type: ${contentType || "unknown"}`);
-}
-
 function buildStorageKey(filename: string, contentType: AcceptedImageContentType): string {
   const now = new Date();
   const year = String(now.getUTCFullYear());
@@ -216,15 +206,4 @@ function ensureImageExtension(filename: string, contentType: AcceptedImageConten
   }
 
   return `${filename.replace(/\.[^.]*$/, "")}${expectedExtension}`;
-}
-
-function toImageMetadata(image: PrismaImage): ImageMetadata {
-  return {
-    id: image.id,
-    filename: image.filename,
-    storageKey: image.storageKey,
-    contentType: validateContentType(image.contentType),
-    size: Number(image.size),
-    uploadedAt: image.uploadedAt.toISOString()
-  };
 }
