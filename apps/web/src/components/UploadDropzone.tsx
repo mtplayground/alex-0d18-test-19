@@ -22,7 +22,11 @@ interface UploadItem {
 const acceptedContentTypes = new Set<string>(ACCEPTED_IMAGE_CONTENT_TYPES);
 const fileInputAccept = ACCEPTED_IMAGE_CONTENT_TYPES.join(",");
 
-export function UploadDropzone() {
+interface UploadDropzoneProps {
+  onUploaded?: (image: ImageMetadata) => void;
+}
+
+export function UploadDropzone({ onUploaded }: UploadDropzoneProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [items, setItems] = useState<UploadItem[]>([]);
   const [dragActive, setDragActive] = useState(false);
@@ -41,6 +45,7 @@ export function UploadDropzone() {
         updateItem(item.id, { progress });
       })
         .then((image) => {
+          onUploaded?.(image);
           updateItem(item.id, {
             status: "complete",
             progress: 100,
@@ -55,7 +60,7 @@ export function UploadDropzone() {
           });
         });
     },
-    [updateItem]
+    [onUploaded, updateItem]
   );
 
   const queueFiles = useCallback(
