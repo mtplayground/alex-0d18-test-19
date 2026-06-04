@@ -1,4 +1,32 @@
-import type { ImageMetadata, UploadImagesResponse } from "@myclawteam/shared";
+import type { ImageMetadata, ListImagesResponse, UploadImagesResponse } from "@myclawteam/shared";
+
+export async function listImages(): Promise<ImageMetadata[]> {
+  const response = await fetch("/api/images", {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  let payload: ListImagesResponse | { error?: string };
+
+  try {
+    payload = (await response.json()) as ListImagesResponse | { error?: string };
+  } catch {
+    throw new Error("Image list response was not valid JSON");
+  }
+
+  if (!response.ok) {
+    throw new Error("error" in payload && payload.error ? payload.error : "Failed to load images");
+  }
+
+  if (!("images" in payload)) {
+    throw new Error("Image list response did not include images");
+  }
+
+  return [...payload.images].sort(
+    (first, second) => new Date(second.uploadedAt).getTime() - new Date(first.uploadedAt).getTime()
+  );
+}
 
 export function uploadImageFile(
   file: File,
